@@ -262,6 +262,16 @@
         .hidden {
             display: none !important;
         }
+
+        .counter {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-weight: 700;
+            color: #3b2a30;
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -284,6 +294,7 @@
 
         <div class="bar-area">
             <div class="track" id="track">
+                <div class="counter" id="counter">0 / 100</div>
                 <div class="fill" id="fill"></div>
             </div>
 
@@ -381,32 +392,36 @@
         goalInput.value = goal;
 
         async function updateFollowers() {
-            if (!username) return;
+            if (!username) return; // si pas de nom Twitch configuré, on ne fait rien
             try {
+                // 🔹 Appel à ton endpoint API pour récupérer le nombre de followers
                 const res = await fetch(`/api/followers?user=${encodeURIComponent(username)}`, { cache: "no-store" });
                 if (!res.ok) throw new Error("Erreur API Twitch");
                 const data = await res.json();
 
-                const followers = data.followers_total || 0;
-                const pct = Math.min(100, (followers / goal) * 100);
+                const followers = data.followers_total || 0;        // nombre actuel de followers
+                const pct = Math.min(100, (followers / goal) * 100); // pourcentage de la barre
 
-                // 🔥 Met à jour la largeur de la barre
+                // 🔹 Mise à jour de la largeur de la barre
                 fill.style.width = pct + "%";
 
-                // 🔥 Déplace le rider exactement avec la barre
+                // 🔹 Déplacement du rider bubble tea
                 const rider = document.getElementById("rider");
                 const track = document.getElementById("track");
                 const trackWidth = track.offsetWidth;
                 const fillWidth = trackWidth * (pct / 100);
-                // On met la position du rider au centre de la largeur de la fill
+                // placer le rider au bout de la barre
                 rider.style.left = (fillWidth / trackWidth * 100) + "%";
 
-                // 🔥 Mets à jour le compteur
+                // 🔹 Mise à jour du compteur numérique au centre
+                const counter = document.getElementById("counter");
                 if (counter) counter.textContent = `${followers} / ${goal}`;
+
             } catch (e) {
                 console.error("Erreur récupération followers:", e);
             }
         }
+
 
         saveBtn.addEventListener("click", () => {
             username = usernameInput.value.trim();
