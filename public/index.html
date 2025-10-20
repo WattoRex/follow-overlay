@@ -87,6 +87,7 @@
             height: 76px;
             pointer-events: none;
             transition: left 900ms cubic-bezier(.2, .9, .3, 1);
+            z-index: 11;
         }
 
         .rider .bob {
@@ -271,6 +272,8 @@
             color: #3b2a30;
             font-size: 1.2rem;
             pointer-events: none;
+            z-index: 10;
+            top: 10px;
         }
     </style>
 </head>
@@ -299,7 +302,7 @@
             </div>
 
             <!-- rider bubble tea -->
-            <div class="rider" id="rider" aria-hidden="true">
+            <!-- <div class="rider" id="rider" aria-hidden="true">
                 <div class="bob">
                     <svg viewBox="0 0 120 120" class="bubble-svg" width="100%" height="100%"
                         xmlns="http://www.w3.org/2000/svg">
@@ -347,7 +350,73 @@
                         </g>
                     </svg>
                 </div>
+            </div> -->
+
+            <!-- rider bubble tea -->
+            <div class="rider" id="rider" aria-hidden="true">
+                <div class="bob">
+                    <svg viewBox="0 0 120 120" class="bubble-svg" width="100%" height="100%"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <!-- tasse -->
+                            <linearGradient id="cupG2" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="var(--cup-color-start, #fff7f3)" stop-opacity="0.6" />
+                                <stop offset="100%" stop-color="var(--cup-color-end, #fff0f6)" stop-opacity="0.3" />
+                            </linearGradient>
+                            <!-- thé -->
+                            <linearGradient id="teaG2" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="var(--accent-start, #FFD7E8)" />
+                                <stop offset="100%" stop-color="var(--accent-end, #FFB0D1)" />
+                            </linearGradient>
+                            <linearGradient id="teaHighlight" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="white" stop-opacity="0.35" />
+                                <stop offset="100%" stop-color="white" stop-opacity="0" />
+                            </linearGradient>
+                        </defs>
+
+                        <g transform="translate(0,6)">
+                            <!-- paille -->
+                            <rect x="56" y="-12" width="8" height="64" rx="3" fill="var(--straw-color, #ffd7e0)"
+                                transform="rotate(10 60 20)" />
+
+                            <!-- thé -->
+                            <path d="M28 36c-6 0-10 6-8 12l8 32c1 5 8 8 32 8s31-3 32-8l8-32c2-6-2-12-8-12H28z"
+                                fill="url(#teaG2)" />
+                            <path d="M28 36c-6 0-10 6-8 12l8 32c1 5 8 8 32 8s31-3 32-8l8-32c2-6-2-12-8-12H28z"
+                                fill="url(#teaHighlight)" />
+
+                            <!-- perles -->
+                            <g id="pearls">
+                                <circle cx="44" cy="68" r="5.5" fill="var(--pearls-color, #302a2a)" opacity="0.95" />
+                                <circle cx="60" cy="72" r="5.5" fill="var(--pearls-color, #302a2a)" opacity="0.95" />
+                                <circle cx="76" cy="68" r="5.5" fill="var(--pearls-color, #302a2a)" opacity="0.95" />
+                            </g>
+
+                            <g transform="translate(36,50)">
+                                <circle cx="6" cy="6" r="4" fill="var(--pearls-color, #3b2a30)" />
+                                <circle cx="36" cy="6" r="4" fill="var(--pearls-color, #3b2a30)" />
+                                <circle cx="10" cy="12" r="2" fill="var(--accent-end, #FFB0D1)" opacity="0.6" />
+                                <circle cx="32" cy="12" r="2" fill="var(--accent-end, #FFB0D1)" opacity="0.6" />
+                            </g>
+
+                            <!-- tasse -->
+                            <path d="M28 32c-6 0-10 6-8 14l8 40c1 6 8 10 32 10s31-4 32-10l8-40c2-8-2-14-8-14H28z"
+                                fill="url(#cupG2)" stroke="var(--cup-color, #f2d1c7)" stroke-width="2" />
+
+                            <path d="M34 36c-1 10 2 32 2 40" stroke="white" stroke-width="2" stroke-linecap="round"
+                                opacity="0.3" />
+
+                            <!-- vapeur -->
+                            <g class="steam" transform="translate(54,-4)" stroke="var(--steam-color, #e5bfc9)"
+                                stroke-width="1.2" fill="none">
+                                <path class="s1" d="M6 44c4-12 12-18 6-26" />
+                                <path class="s2" d="M20 44c4-12 12-18 6-26" />
+                            </g>
+                        </g>
+                    </svg>
+                </div>
             </div>
+
 
             <!-- small decorative hearts -->
             <div class="heart-pulse" aria-hidden="true">
@@ -374,8 +443,17 @@
         <label>Objectif :
             <input type="number" id="goalInput" value="100" min="1">
         </label>
+        <label>Thème :
+            <select id="themeSelect">
+                <option value="pink">Bubble Tea Rose</option>
+                <option value="green">Bubble Tea Vert</option>
+                <option value="orange">Bubble Tea Orange</option>
+                <option value="yellow">Bubble Tea Jaune</option>
+            </select>
+        </label>
         <button id="saveBtn">💾 Sauvegarder</button>
     </div>
+
 
     <script>
         const fill = document.getElementById("fill");
@@ -383,6 +461,7 @@
         const usernameInput = document.getElementById("usernameInput");
         const goalInput = document.getElementById("goalInput");
         const saveBtn = document.getElementById("saveBtn");
+        const themeSelect = document.getElementById("themeSelect");
 
         // Lecture des données sauvegardées
         let username = localStorage.getItem("twitch_username") || "";
@@ -390,6 +469,10 @@
 
         if (username) usernameInput.value = username;
         goalInput.value = goal;
+
+        let theme = localStorage.getItem("twitch_theme") || "pink";
+        themeSelect.value = theme;
+        applyTheme(theme);
 
         async function updateFollowers() {
             if (!username) return; // si pas de nom Twitch configuré, on ne fait rien
@@ -422,13 +505,54 @@
             }
         }
 
+        // Fonction pour appliquer un thème
+        const root = document.documentElement;
+
+        function setTheme(theme) {
+            switch (theme) {
+                case "pink": // Bubble Tea Rose
+                    root.style.setProperty("--accent-start", "#FFD7E8");
+                    root.style.setProperty("--accent-end", "#FFB0D1");
+                    root.style.setProperty("--cup-color", "#ffd7e0");
+                    root.style.setProperty("--straw-color", "#ffd7e0");
+                    root.style.setProperty("--pearls-color", "#302a2a");
+                    root.style.setProperty("--steam-color", "#e5bfc9");
+                    break;
+                case "green":
+                    root.style.setProperty("--accent-start", "#B8F1B0");
+                    root.style.setProperty("--accent-end", "#7ED957");
+                    root.style.setProperty("--cup-color", "#a0e07f");
+                    root.style.setProperty("--straw-color", "#a0e07f");
+                    root.style.setProperty("--pearls-color", "#1b3a1b");
+                    root.style.setProperty("--steam-color", "#c0e5b0");
+                    break;
+                case "orange":
+                    root.style.setProperty("--accent-start", "#FFD79F");
+                    root.style.setProperty("--accent-end", "#FFA63B");
+                    root.style.setProperty("--cup-color", "#ffc487");
+                    root.style.setProperty("--straw-color", "#ffc487");
+                    root.style.setProperty("--pearls-color", "#663300");
+                    root.style.setProperty("--steam-color", "#ffe0b0");
+                    break;
+                case "yellow":
+                    root.style.setProperty("--accent-start", "#FFF799");
+                    root.style.setProperty("--accent-end", "#FFD700");
+                    root.style.setProperty("--cup-color", "#fff466");
+                    root.style.setProperty("--straw-color", "#fff466");
+                    root.style.setProperty("--pearls-color", "#b38f00");
+                    root.style.setProperty("--steam-color", "#fff7b3");
+                    break;
+            }
+        }
 
         saveBtn.addEventListener("click", () => {
             username = usernameInput.value.trim();
             goal = parseInt(goalInput.value, 10);
             localStorage.setItem("twitch_username", username);
             localStorage.setItem("twitch_goal", goal);
+            localStorage.setItem("twitch_theme", theme);
             updateFollowers();
+            applyTheme(theme);
         });
 
         // Auto-refresh toutes les 60 secondes
