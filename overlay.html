@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Twitch Followers — Vérificateur</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card: #0f1724;
+            --accent: #7dd3fc;
+            --muted: #94a3b8;
+            --text: #e6eef8;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, var(--bg), #061025);
+            color: var(--text)
+        }
+
+        .card {
+            width: min(520px, 95vw);
+            background: var(--card);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6)
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 20px
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text);
+            outline: none
+        }
+
+        button {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #042034;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform .08s;
+            min-width: 120px
+        }
+
+        button:active {
+            transform: translateY(1px)
+        }
+
+        .result {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 16px
+        }
+
+        .error {
+            color: #ffb4b4;
+            background: rgba(255, 180, 180, 0.03);
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 12px
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 8px
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card" role="main">
+        <h1>Twitch — Nombre de followers</h1>
+
+        <label for="user">Nom d'utilisateur Twitch</label>
+        <div class="controls">
+            <input id="user" type="text" placeholder="ex : gotaga, amouranth, ton_pseudo" autocomplete="off" />
+            <button id="btn">Obtenir</button>
+        </div>
+
+        <div id="out" class="result" style="display:none"></div>
+        <div id="error" class="error" style="display:none"></div>
+        <div class="small">
+            Actualisation automatique toutes les 60 secondes si un pseudo est saisi.
+        </div>
+    </main>
+
+    <script>
+        const btn = document.getElementById('btn');
+        const input = document.getElementById('user');
+        const out = document.getElementById('out');
+        const errBox = document.getElementById('error');
+
+        async function getFollowers(username) {
+            out.style.display = 'none';
+            errBox.style.display = 'none';
+            btn.disabled = true;
+            const prevText = btn.textContent;
+            btn.textContent = 'Chargement…';
+
+            try {
+                const resp = await fetch(`/api/followers?user=${encodeURIComponent(username)}`, {
+                    cache: 'no-store'
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({ error: 'Erreur inconnue' }));
+                    throw new Error(err.error || resp.statusText || 'Erreur HTTP ' + resp.status);
+                }
+
+                const data = await resp.json();
+
+                out.style.display = 'block';
+                out.innerHTML = `
+          <strong>${escapeHtml(data.user)}</strong><br>
+          <span style="color:var(--muted);font-size:13px">broadcaster_id</span> ${escapeHtml(data.broadcaster_id)}<br>
+          <span style="font-size:20px;margin-top:6px;display:inline-block">${numberWithSpaces(data.followers_total)} followers</span>
+        `;
+            } catch (e) {
+                errBox.style.display = 'block';
+                errBox.textContent = 'Erreur : ' + e.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = prevText;
+            }
+        }
+
+        btn.addEventListener('click', () => {
+            const u = input.value.trim();
+            if (!u) {
+                errBox.style.display = 'block';
+                errBox.textContent = "Merci d'entrer un nom d'utilisateur Twitch.";
+                return;
+            }
+            getFollowers(u);
+        });
+
+        input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') btn.click();
+        });
+
+        // Auto-refresh toutes les 60 secondes si un pseudo est saisi
+        setInterval(() => {
+            const username = input.value.trim();
+            if (username) getFollowers(username);
+        }, 60000);
+
+        // petits utilitaires
+        function numberWithSpaces(x) {
+            if (x === undefined || x === null) return '-';
+            return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return str;
+            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        }
+    </script>
+</body>
+
+</html>
