@@ -389,8 +389,19 @@
 
                 const followers = data.followers_total || 0;
                 const pct = Math.min(100, (followers / goal) * 100);
+
+                // 🔥 Met à jour la largeur de la barre
                 fill.style.width = pct + "%";
-                counter.textContent = `${followers} / ${goal}`;
+
+                // 🔥 Déplace le rider le long de la barre (en %)
+                const rider = document.getElementById("rider");
+                const riderMin = 10;  // position de départ (gauche)
+                const riderMax = 90;  // limite droite pour ne pas sortir de la barre
+                const riderPos = riderMin + ((riderMax - riderMin) * (pct / 100));
+                rider.style.left = riderPos + "%";
+
+                // 🔥 Mets à jour le compteur
+                if (counter) counter.textContent = `${followers} / ${goal}`;
             } catch (e) {
                 console.error("Erreur récupération followers:", e);
             }
