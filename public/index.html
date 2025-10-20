@@ -393,12 +393,13 @@
                 // 🔥 Met à jour la largeur de la barre
                 fill.style.width = pct + "%";
 
-                // 🔥 Déplace le rider le long de la barre (en %)
+                // 🔥 Déplace le rider exactement avec la barre
                 const rider = document.getElementById("rider");
-                const riderMin = 10;  // position de départ (gauche)
-                const riderMax = 90;  // limite droite pour ne pas sortir de la barre
-                const riderPos = riderMin + ((riderMax - riderMin) * (pct / 100));
-                rider.style.left = riderPos + "%";
+                const track = document.getElementById("track");
+                const trackWidth = track.offsetWidth;
+                const fillWidth = trackWidth * (pct / 100);
+                // On met la position du rider au centre de la largeur de la fill
+                rider.style.left = (fillWidth / trackWidth * 100) + "%";
 
                 // 🔥 Mets à jour le compteur
                 if (counter) counter.textContent = `${followers} / ${goal}`;
