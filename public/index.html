@@ -472,7 +472,7 @@
 
         let theme = localStorage.getItem("twitch_theme") || "pink";
         themeSelect.value = theme;
-        applyTheme(theme);
+        setTheme(theme);
 
         async function updateFollowers() {
             if (!username) return; // si pas de nom Twitch configuré, on ne fait rien
@@ -545,6 +545,12 @@
             }
         }
 
+        themeSelect.addEventListener("change", (e) => {
+            theme = e.target.value;
+            setTheme(theme);
+        });
+
+
         saveBtn.addEventListener("click", () => {
             username = usernameInput.value.trim();
             goal = parseInt(goalInput.value, 10);
@@ -552,7 +558,7 @@
             localStorage.setItem("twitch_goal", goal);
             localStorage.setItem("twitch_theme", theme);
             updateFollowers();
-            applyTheme(theme);
+            setTheme(theme);
         });
 
         // Auto-refresh toutes les 60 secondes
