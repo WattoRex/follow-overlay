@@ -2,5 +2,9 @@
   "name": "twitch-followers-counter",
   "version": "1.0.0",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build needed'",
+    "start": "npx serve public"
+  }
 }
