@@ -462,6 +462,7 @@
         const goalInput = document.getElementById("goalInput");
         const saveBtn = document.getElementById("saveBtn");
         const themeSelect = document.getElementById("themeSelect");
+        const root = document.documentElement;
 
         // Lecture des données sauvegardées
         let username = localStorage.getItem("twitch_username") || "";
@@ -506,7 +507,7 @@
         }
 
         // Fonction pour appliquer un thème
-        const root = document.documentElement;
+
 
         function setTheme(theme) {
             switch (theme) {
