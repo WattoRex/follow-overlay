@@ -457,6 +457,11 @@
 
         </label>
         <button id="saveBtn">💾 Sauvegarder</button>
+
+        <label>URL pour OBS :</label>
+        <input type="text" id="overlayUrl" class="hidden" readonly onclick="this.select()">
+        <small>Copie cette URL et colle-la dans ta source Navigateur OBS</small>
+
     </div>
 
 
@@ -480,47 +485,62 @@
         themeSelect.value = theme;
         setTheme(theme);
 
+        // Affiche l’URL dans la config
+        function displayOverlayURL() {
+            const urlDisplay = document.getElementById("overlayUrl");
+            const base = window.location.origin + window.location.pathname;
+            const finalURL = `${base}?user=${encodeURIComponent(username)}&goal=${goal}`;
+            urlDisplay.value = finalURL;
+            urlDisplay.classList.remove("hidden");
+        }
+
+        // Fonction principale de mise à jour
         async function updateFollowers() {
             const params = new URLSearchParams(window.location.search);
-            const username = params.get("user");
-            const goal = parseInt(params.get("goal") || "100", 10);
+            const userFromURL = params.get("user");
+            const goalFromURL = parseInt(params.get("goal") || goal, 10);
 
-            if (!username) {
-                const counter = document.getElementById("counter");
-                if (counter) counter.textContent = "⚠️ Aucun utilisateur défini";
+            const currentUser = userFromURL || username;
+            const currentGoal = goalFromURL || goal;
+
+            if (!currentUser) {
+                counter.textContent = "⚠️ Aucun utilisateur défini";
                 return;
             }
 
             try {
-                const res = await fetch(`/api/followers?user=${encodeURIComponent(username)}`);
+                const res = await fetch(`/api/followers?user=${encodeURIComponent(currentUser)}`, { cache: "no-store" });
                 if (!res.ok) throw new Error("Erreur API Twitch");
 
                 const data = await res.json();
                 const followers = data.followers_total || 0;
+                const pct = Math.min(100, (followers / currentGoal) * 100);
 
-                // Calcule le pourcentage
-                const pct = Math.min(100, (followers / goal) * 100);
+                fill.style.width = pct + "%";
 
-                // Met à jour la barre
-                const fill = document.getElementById("fill");
-                fill.style.width = `${pct}%`;
-
-                // Met à jour le compteur
-                const counter = document.getElementById("counter");
-                if (counter) counter.textContent = `${followers} / ${goal}`;
-
-                // Met à jour la position du rider
                 const rider = document.getElementById("rider");
                 const track = document.getElementById("track");
                 const trackWidth = track.offsetWidth;
                 const fillWidth = trackWidth * (pct / 100);
-                rider.style.left = `${(fillWidth / trackWidth) * 100}%`;
+                rider.style.left = (fillWidth / trackWidth * 100) + "%";
+
+                counter.textContent = `${followers} / ${currentGoal}`;
             } catch (e) {
                 console.error("Erreur récupération followers:", e);
-                const counter = document.getElementById("counter");
-                if (counter) counter.textContent = "⚠️ Erreur API";
+                counter.textContent = "⚠️ Erreur API";
             }
         }
+
+        // Sauvegarde et affiche l’URL
+        saveBtn.addEventListener("click", () => {
+            username = usernameInput.value.trim();
+            goal = parseInt(goalInput.value, 10);
+            localStorage.setItem("twitch_username", username);
+            localStorage.setItem("twitch_goal", goal);
+            updateFollowers();
+            displayOverlayURL();
+        });
+
 
         // Fonction pour appliquer un thème
         function setTheme(theme) {
@@ -616,10 +636,19 @@
             setTheme(theme);
         });
 
-        window.addEventListener("DOMContentLoaded", () => {
-            updateFollowers();
-            setInterval(updateFollowers, 60000); // rafraîchit chaque minute
+        urlDisplay.addEventListener("click", () => {
+            urlDisplay.select();
+            document.execCommand("copy");
+            alert("Lien copié dans le presse-papiers !");
         });
+
+
+
+        // Auto-refresh toutes les 60 secondes
+        setInterval(updateFollowers, 60000);
+
+        // Premier chargement auto
+        updateFollowers();
     </script>
 </body>
 
