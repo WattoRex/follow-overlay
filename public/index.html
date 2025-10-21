@@ -481,39 +481,48 @@
         setTheme(theme);
 
         async function updateFollowers() {
-            if (!username) return; // si pas de nom Twitch configuré, on ne fait rien
+            const params = new URLSearchParams(window.location.search);
+            const username = params.get("user");
+            const goal = parseInt(params.get("goal") || "100", 10);
+
+            if (!username) {
+                const counter = document.getElementById("counter");
+                if (counter) counter.textContent = "⚠️ Aucun utilisateur défini";
+                return;
+            }
+
             try {
-                // 🔹 Appel à ton endpoint API pour récupérer le nombre de followers
-                const res = await fetch(`/api/followers?user=${encodeURIComponent(username)}`, { cache: "no-store" });
+                const res = await fetch(`/api/followers?user=${encodeURIComponent(username)}`);
                 if (!res.ok) throw new Error("Erreur API Twitch");
+
                 const data = await res.json();
+                const followers = data.followers_total || 0;
 
-                const followers = data.followers_total || 0;        // nombre actuel de followers
-                const pct = Math.min(100, (followers / goal) * 100); // pourcentage de la barre
+                // Calcule le pourcentage
+                const pct = Math.min(100, (followers / goal) * 100);
 
-                // 🔹 Mise à jour de la largeur de la barre
-                fill.style.width = pct + "%";
+                // Met à jour la barre
+                const fill = document.getElementById("fill");
+                fill.style.width = `${pct}%`;
 
-                // 🔹 Déplacement du rider bubble tea
+                // Met à jour le compteur
+                const counter = document.getElementById("counter");
+                if (counter) counter.textContent = `${followers} / ${goal}`;
+
+                // Met à jour la position du rider
                 const rider = document.getElementById("rider");
                 const track = document.getElementById("track");
                 const trackWidth = track.offsetWidth;
                 const fillWidth = trackWidth * (pct / 100);
-                // placer le rider au bout de la barre
-                rider.style.left = (fillWidth / trackWidth * 100) + "%";
-
-                // 🔹 Mise à jour du compteur numérique au centre
-                const counter = document.getElementById("counter");
-                if (counter) counter.textContent = `${followers} / ${goal}`;
-
+                rider.style.left = `${(fillWidth / trackWidth) * 100}%`;
             } catch (e) {
                 console.error("Erreur récupération followers:", e);
+                const counter = document.getElementById("counter");
+                if (counter) counter.textContent = "⚠️ Erreur API";
             }
         }
 
         // Fonction pour appliquer un thème
-
-
         function setTheme(theme) {
             switch (theme) {
                 case "pink": // Bubble Tea Rose
@@ -607,11 +616,10 @@
             setTheme(theme);
         });
 
-        // Auto-refresh toutes les 60 secondes
-        setInterval(updateFollowers, 60000);
-
-        // Premier chargement auto
-        updateFollowers();
+        window.addEventListener("DOMContentLoaded", () => {
+            updateFollowers();
+            setInterval(updateFollowers, 60000); // rafraîchit chaque minute
+        });
     </script>
 </body>
 
