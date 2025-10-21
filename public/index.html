@@ -496,9 +496,11 @@
 
         // Fonction principale de mise à jour
         async function updateFollowers() {
+            let goal = 100; // valeur par défaut avant lecture de l’URL
             const params = new URLSearchParams(window.location.search);
             const userFromURL = params.get("user");
             const goalFromURL = parseInt(params.get("goal") || goal, 10);
+
 
             const currentUser = userFromURL || username;
             const currentGoal = goalFromURL || goal;
@@ -635,14 +637,6 @@
             updateFollowers();
             setTheme(theme);
         });
-
-        urlDisplay.addEventListener("click", () => {
-            urlDisplay.select();
-            document.execCommand("copy");
-            alert("Lien copié dans le presse-papiers !");
-        });
-
-
 
         // Auto-refresh toutes les 60 secondes
         setInterval(updateFollowers, 60000);
