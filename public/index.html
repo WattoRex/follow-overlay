@@ -478,6 +478,7 @@
         let username = localStorage.getItem("twitch_username") || "";
         let goal = parseInt(localStorage.getItem("twitch_goal") || "100", 10);
 
+
         if (username) usernameInput.value = username;
         goalInput.value = goal;
 
@@ -489,7 +490,7 @@
         function displayOverlayURL() {
             const urlDisplay = document.getElementById("overlayUrl");
             const base = window.location.origin + window.location.pathname;
-            const finalURL = `${base}?user=${encodeURIComponent(username)}&goal=${goal}`;
+            const finalURL = `${base}?user=${encodeURIComponent(username)}&goal=${goal}&theme=${theme}`;
             urlDisplay.value = finalURL;
             urlDisplay.classList.remove("hidden");
         }
@@ -500,10 +501,12 @@
             const params = new URLSearchParams(window.location.search);
             const userFromURL = params.get("user");
             const goalFromURL = parseInt(params.get("goal") || goal, 10);
+            const themeFromURL = params.get("theme");
 
 
             const currentUser = userFromURL || username;
             const currentGoal = goalFromURL || goal;
+            const currentTheme = themeFromURL || theme;
 
             if (!currentUser) {
                 counter.textContent = "⚠️ Aucun utilisateur défini";
@@ -533,12 +536,15 @@
             }
         }
 
-        // Sauvegarde et affiche l’URL
+        // Sauvegarde config locale
         saveBtn.addEventListener("click", () => {
             username = usernameInput.value.trim();
             goal = parseInt(goalInput.value, 10);
+            theme = themeSelect.value;
             localStorage.setItem("twitch_username", username);
             localStorage.setItem("twitch_goal", goal);
+            localStorage.setItem("twitch_theme", theme);
+            setTheme(theme);
             updateFollowers();
             displayOverlayURL();
         });
@@ -622,11 +628,13 @@
         }
 
 
+
+        // Changement thème à la volée
         themeSelect.addEventListener("change", (e) => {
             theme = e.target.value;
             setTheme(theme);
+            localStorage.setItem("twitch_theme", theme);
         });
-
 
         saveBtn.addEventListener("click", () => {
             username = usernameInput.value.trim();
