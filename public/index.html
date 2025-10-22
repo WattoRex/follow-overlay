@@ -649,8 +649,34 @@
         // Auto-refresh toutes les 60 secondes
         setInterval(updateFollowers, 60000);
 
-        // Premier chargement auto
-        updateFollowers();
+        // Lecture des paramètres d'URL au chargement
+        window.addEventListener("DOMContentLoaded", () => {
+            const params = new URLSearchParams(window.location.search);
+            const themeFromURL = params.get("theme");
+            const userFromURL = params.get("user");
+            const goalFromURL = parseInt(params.get("goal") || "0", 10);
+
+            if (themeFromURL) {
+                theme = themeFromURL;
+                setTheme(theme);
+                localStorage.setItem("twitch_theme", theme);
+            }
+
+            if (userFromURL) {
+                username = userFromURL;
+                usernameInput.value = username;
+                localStorage.setItem("twitch_username", username);
+            }
+
+            if (goalFromURL) {
+                goal = goalFromURL;
+                goalInput.value = goal;
+                localStorage.setItem("twitch_goal", goal);
+            }
+
+            // Puis on met à jour l’interface
+            updateFollowers();
+        });
     </script>
 </body>
 
